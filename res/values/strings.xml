@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">aBeacon</string>
+    <string name="ble_not_supported">BLE not supported on this device</string>
+    <string name="bt_unavailable">Bluetooth unavailable</string>
+    <string name="hello_world">Hello Peripheral World!</string>
+</resources>
