@@ -1,0 +1,10 @@
+<resources>
+    <!-- Purple 50 -->
+    <item name="window_background" type="color">#F3E5F5</item>
+    <!-- Purple 100 -->
+    <item name="primary" type="color">#E1BEE7</item>
+    <!-- Purple 300 -->
+    <item name="primary_dark" type="color">#BA68C8</item>
+    <!-- Purple 600 -->
+    <item name="navigation_bar_color" type="color">#8E24AA</item>
+</resources>

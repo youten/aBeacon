@@ -27,8 +27,13 @@ public class BleUuid {
 	public static final String SERVICE_IMMEDIATE_ALERT = "00001802-0000-1000-8000-00805f9b34fb";
 	public static final String CHAR_ALERT_LEVEL = "00002a06-0000-1000-8000-00805f9b34fb";
 	// StickNFindではCHAR_ALERT_LEVELに0x01をWriteすると光り、0x02では音が鳴り、0x03では光って鳴る。
-
-	// 180F Battery Service
+	
+	// 180F Battery
 	public static final String SERVICE_BATTERY_SERVICE = "0000180F-0000-1000-8000-00805f9b34fb";
 	public static final String CHAR_BATTERY_LEVEL = "00002a19-0000-1000-8000-00805f9b34fb";
+	
+    // 180D Heart Rate
+    public static final String SERVICE_HEART_RATE = "0000180d-0000-1000-8000-00805f9b34fb";
+    public static final String CHAR_BATTER = "00002a19-0000-1000-8000-00805f9b34fb";
+
 }

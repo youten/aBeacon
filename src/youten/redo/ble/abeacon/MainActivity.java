@@ -1,45 +1,55 @@
 
 package youten.redo.ble.abeacon;
 
+import java.util.UUID;
+
 import youten.redo.ble.util.BleUtil;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private static final String TAG = "aBeacon";
+    private static final int REQUEST_ENABLE_BT = 1;
+    // BT
     private BluetoothAdapter mBTAdapter;
     private BluetoothLeAdvertiser mBTAdvertiser;
-    private boolean mIsAdvertising = false;
+    // View
+    private Button mIBeaconButton;
+    private Button mIASButton;
+    private Button mStopButton;
 
     private AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
-
-        @Override
-        public void onSuccess(AdvertiseSettings settingsInEffect) {
+        public void onStartSuccess(android.bluetooth.le.AdvertiseSettings settingsInEffect) {
             // Advする際に設定した値と実際に動作させることに成功したSettingsが違うとsettingsInEffectに
             // 有効な値が格納される模様です。設定通りに動かすことに成功した際にはnullが返る模様。
             if (settingsInEffect != null) {
-                Log.d(TAG, "onSuccess TxPowerLv="
+                Log.d(TAG, "onStartSuccess TxPowerLv="
                         + settingsInEffect.getTxPowerLevel()
                         + " mode=" + settingsInEffect.getMode()
-                        + " type=" + settingsInEffect.getType());
+                        + " timeout=" + settingsInEffect.getTimeout());
             } else {
-                Log.d(TAG, "onSuccess, settingInEffect is null");
+                Log.d(TAG, "onStartSuccess, settingInEffect is null");
             }
+            mIBeaconButton.setEnabled(false);
+            mIASButton.setEnabled(false);
+            mStopButton.setEnabled(true);
+            setProgressBarIndeterminateVisibility(false);
         }
 
-        @Override
-        public void onFailure(int errorCode) {
-            Log.d(TAG, "onFailure errorCode=" + errorCode);
-        }
+        public void onStartFailure(int errorCode) {
+            Log.d(TAG, "onStartFailure errorCode=" + errorCode);
+        };
     };
 
     @Override
@@ -52,16 +62,8 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
-        startAdvertise();
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
-
         stopAdvertise();
     }
 
@@ -78,60 +80,65 @@ public class MainActivity extends Activity {
         if (manager != null) {
             mBTAdapter = manager.getAdapter();
         }
-        if (mBTAdapter == null) {
+        if ((mBTAdapter == null) || (!mBTAdapter.isEnabled())) {
             Toast.makeText(this, R.string.bt_unavailable, Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
-
+        mIBeaconButton = (Button) findViewById(R.id.ibeacon_button);
+        mIBeaconButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startIBeaconAdvertise();
+            }
+        });
+        mIASButton = (Button) findViewById(R.id.ias_button);
+        mIASButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startIASAdvertise();
+            }
+        });
+        mStopButton = (Button) findViewById(R.id.stop_button);
+        mStopButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopAdvertise();
+            }
+        });
     }
 
-    private void startAdvertise() {
-        if ((mBTAdapter != null) && (!mIsAdvertising)) {
-            if (mBTAdvertiser == null) {
-                mBTAdvertiser = mBTAdapter.getBluetoothLeAdvertiser();
-            }
-            mBTAdvertiser.startAdvertising(createAdvSettings(), createAdvData(), mAdvCallback);
-            setProgressBarIndeterminateVisibility(true);
+    // start Advertise as iBeacon
+    private void startIBeaconAdvertise() {
+        if (mBTAdapter == null) {
+            return;
         }
+        if (mBTAdvertiser == null) {
+            mBTAdvertiser = mBTAdapter.getBluetoothLeAdvertiser();
+        }
+        if (mBTAdvertiser != null) {
+            mBTAdvertiser.startAdvertising(
+                    BleUtil.createAdvSettings(false, 0),
+                    BleUtil.createIBeaconAdvertiseData(
+                            UUID.fromString("01020304-0506-0708-1112-131415161718"),
+                            (short) 257, (short) 514, (byte) 0xc5),
+                    mAdvCallback);
+        }
+    }
+
+    // start Advertise as Immediate Alert Service
+    private void startIASAdvertise() {
+
     }
 
     private void stopAdvertise() {
         if (mBTAdvertiser != null) {
             mBTAdvertiser.stopAdvertising(mAdvCallback);
+            mBTAdvertiser = null;
         }
-        mIsAdvertising = false;
+        mIBeaconButton.setEnabled(true);
+        // mIASButton.setEnabled(true);
+        mStopButton.setEnabled(false);
         setProgressBarIndeterminateVisibility(false);
-    }
-
-    private static AdvertisementData createAdvData() {
-        // 某Beacon
-        final byte[] manufacturerData = new byte[] {
-                (byte) 0x4c, (byte) 0x00, (byte) 0x02, (byte) 0x15, // fix
-                // proximity uuid 01020304-0506-0708-1112-131415161718
-                (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, // uuid
-                (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08, // uuid
-                (byte) 0x11, (byte) 0x12, (byte) 0x13, (byte) 0x14, // uuid
-                (byte) 0x15, (byte) 0x16, (byte) 0x17, (byte) 0x18, // uuid
-                (byte) 0x01, (byte) 0x01, // major 257
-                (byte) 0x02, (byte) 0x02, // minor 514
-                (byte) 0xc5 // Tx Power -59
-        };
-        AdvertisementData.Builder builder = new AdvertisementData.Builder();
-        // TxPowerLevelの設定に応じてTxPowerをAdvに混ぜてくれる設定だと思うのですが
-        // いまいち分かっていません。trueにすると最大31オクテットなサイズが減っちゃうので
-        // 某BeaconなパケをAdvするためにはfalseにする必要があります。
-        builder.setIncludeTxPowerLevel(false);
-        // 1つ目の引数がmanufacturerIdって書いてあるんですがAndroidのscanRecordでは読み取れないため適当値です。
-        builder.setManufacturerData(0x1234578, manufacturerData);
-        return builder.build();
-    }
-
-    private static AdvertiseSettings createAdvSettings() {
-        AdvertiseSettings.Builder builder = new AdvertiseSettings.Builder();
-        builder.setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH);
-        builder.setType(AdvertiseSettings.ADVERTISE_TYPE_SCANNABLE | AdvertiseSettings.ADVERTISE_TYPE_CONNECTABLE);
-        builder.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
-        return builder.build();
     }
 }
