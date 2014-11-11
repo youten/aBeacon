@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 youten
+ * Copyright (C) 2014 youten
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,30 +63,25 @@ public class BleUtil {
         }
         // UUID to byte[]
         // ref. http://stackoverflow.com/questions/6881659/how-to-convert-two-longs-to-a-byte-array-how-to-convert-uuid-to-byte-array
-        byte[] manufacturerData = new byte[24];
+        byte[] manufacturerData = new byte[23];
         ByteBuffer bb = ByteBuffer.wrap(manufacturerData);
         bb.order(ByteOrder.BIG_ENDIAN);
-        // fixed
-        bb.put((byte) 0x4c);
-        bb.put((byte) 0x00);
+        // fixed 4bytes
+        // ManufacturerIdが正しく入るようになったので先頭2byteの変わりに
+        // addManufacturerData時に0x004cとbyte[23]の2引数を指定すると一応iBeaconとして認識される気配がします。
+        // （何をもって"iBeacon"とすべきかは某MFiなNDAの話なので分かりませんが！）
+        //bb.put((byte) 0x4c);
+        //bb.put((byte) 0x00);
         bb.put((byte) 0x02);
         bb.put((byte) 0x15);
         bb.putLong(proximityUuid.getMostSignificantBits());
         bb.putLong(proximityUuid.getLeastSignificantBits());
         bb.putShort(major);
         bb.putShort(minor);
-        //
-        // !!!CAUTION!!!
-        //
-        // 31octetの計算方法にバグがあって、iBeaconに必要な25byte（TxPower）まで埋めると
-        // AdvertiseCallback#ADVERTISE_FAILED_DATA_TOO_LARGEが返ってきます。
-        // http://tools.oesf.biz/android-5.0.0_r2.0/xref/frameworks/base/core/java/android/bluetooth/le/BluetoothLeAdvertiser.java#totalBytes
-        // bb.put(txPower);
-        // というわけで現時点ではTxPowerなしというかなり片手落ちなiBeaconのAdvしか吹けません…orz
+        bb.put(txPower);
 
         AdvertiseData.Builder builder = new AdvertiseData.Builder();
-        // 1つ目の引数がmanufacturerIdって書いてあるんですがAndroidのscanRecordでは読み取れないため適当値です。
-        builder.addManufacturerData(0, manufacturerData);
+        builder.addManufacturerData(0x004c, manufacturerData);
         AdvertiseData adv = builder.build();
         return adv;
     }
