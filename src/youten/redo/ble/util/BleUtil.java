@@ -49,6 +49,7 @@ public class BleUtil {
     public static AdvertiseSettings createAdvSettings(boolean connectable, int timeoutMillis) {
         AdvertiseSettings.Builder builder = new AdvertiseSettings.Builder();
         builder.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
+        // ConnectableをtrueにするとFlags AD typeの3byteがManufacturer specific data等の前につくようになります。
         builder.setConnectable(connectable);
         builder.setTimeout(timeoutMillis);
         builder.setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH);

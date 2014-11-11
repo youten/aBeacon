@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
         }
         if (mBTAdvertiser != null) {
             mBTAdvertiser.startAdvertising(
-                    BleUtil.createAdvSettings(false, 0),
+                    BleUtil.createAdvSettings(true, 0),
                     BleUtil.createIBeaconAdvertiseData(
                             UUID.fromString("01020304-0506-0708-1112-131415161718"),
                             (short) 257, (short) 514, (byte) 0xc5),
