@@ -14,7 +14,6 @@
         android:id="@+id/ias_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
         android:text="@string/label_ias_button" />
     <Button
         android:id="@+id/stop_button"

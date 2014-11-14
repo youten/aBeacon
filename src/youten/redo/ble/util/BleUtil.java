@@ -25,6 +25,7 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.ParcelUuid;
 
 /**
  * Util for Bluetooth Low Energy
@@ -86,4 +87,15 @@ public class BleUtil {
         AdvertiseData adv = builder.build();
         return adv;
     }
+
+    /** create AdvertiseDate for FMP(Find Me Profile, include IAS and DIS) */
+    public static AdvertiseData createFMPAdvertiseData() {
+        AdvertiseData.Builder builder = new AdvertiseData.Builder();
+
+        builder.addServiceUuid(new ParcelUuid(UUID.fromString(BleUuid.SERVICE_DEVICE_INFORMATION)));
+        builder.addServiceUuid(new ParcelUuid(UUID.fromString(BleUuid.SERVICE_IMMEDIATE_ALERT)));
+        AdvertiseData adv = builder.build();
+        return adv;
+    }
+
 }

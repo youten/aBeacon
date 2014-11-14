@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package youten.redo.ble.abeacon;
 
 import java.util.UUID;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import youten.redo.ble.util.BleUtil;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.BluetoothLeAdvertiser;
@@ -38,6 +40,7 @@ public class MainActivity extends Activity {
     // BT
     private BluetoothAdapter mBTAdapter;
     private BluetoothLeAdvertiser mBTAdvertiser;
+    private BluetoothGattServer mGattServer;
     // View
     private Button mIBeaconButton;
     private Button mIASButton;
@@ -142,16 +145,36 @@ public class MainActivity extends Activity {
 
     // start Advertise as Immediate Alert Service
     private void startIASAdvertise() {
-
+        if (mBTAdapter == null) {
+            return;
+        }
+        if (mBTAdvertiser == null) {
+            mBTAdvertiser = mBTAdapter.getBluetoothLeAdvertiser();
+        }
+        if (mBTAdvertiser != null) {
+            ImmediateAlertService ias = new ImmediateAlertService();
+            mGattServer = BleUtil.getManager(this).openGattServer(this, ias);
+            ias.setupServices(mGattServer);
+            
+            mBTAdvertiser.startAdvertising(
+                    BleUtil.createAdvSettings(true, 0),
+                    BleUtil.createFMPAdvertiseData(),
+                    mAdvCallback);
+        }
     }
 
     private void stopAdvertise() {
+        if (mGattServer != null) {
+            mGattServer.clearServices();
+            mGattServer.close();
+            mGattServer = null;
+        }
         if (mBTAdvertiser != null) {
             mBTAdvertiser.stopAdvertising(mAdvCallback);
             mBTAdvertiser = null;
         }
         mIBeaconButton.setEnabled(true);
-        // mIASButton.setEnabled(true);
+        mIASButton.setEnabled(true);
         mStopButton.setEnabled(false);
         setProgressBarIndeterminateVisibility(false);
     }
