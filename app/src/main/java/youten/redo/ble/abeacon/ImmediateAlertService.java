@@ -57,7 +57,7 @@ public class ImmediateAlertService extends BluetoothGattServerCallback {
                     BluetoothGattCharacteristic.PERMISSION_READ);
             // serial number string char.
             BluetoothGattCharacteristic snsc = new BluetoothGattCharacteristic(
-                    UUID.fromString(BleUuid.CHAR_SERIAL_NUMBEAR_STRING),
+                    UUID.fromString(BleUuid.CHAR_SERIAL_NUMBER_STRING),
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ);
             dis.addCharacteristic(mansc);
@@ -98,8 +98,8 @@ public class ImmediateAlertService extends BluetoothGattServerCallback {
             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
                     characteristic.getValue());
         } else if (characteristic.getUuid().equals(
-                UUID.fromString(BleUuid.CHAR_SERIAL_NUMBEAR_STRING))) {
-            Log.d(TAG, "CHAR_SERIAL_NUMBEAR_STRING");
+                UUID.fromString(BleUuid.CHAR_SERIAL_NUMBER_STRING))) {
+            Log.d(TAG, "CHAR_SERIAL_NUMBER_STRING");
             characteristic.setValue("Serial:777");
             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
                     characteristic.getValue());
